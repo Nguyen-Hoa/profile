@@ -2,7 +2,7 @@ package profile
 
 import (
 	"bytes"
-	"log"
+	"errors"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -204,16 +204,12 @@ func cacheStats() (map[string]float64, error) {
 	perf.Stderr = &errb
 	err := perf.Run()
 	if err != nil {
-		log.Print(errb.String())
-		log.Fatal(err)
-		return nil, err
+		return nil, errors.New(errb.String())
 	}
 	lines := strings.Split(errb.String(), "\n")
 	cacheMisses, _ := strconv.ParseFloat(stringClean(strings.Fields(lines[3])[0]), 64)
 	cacheRefs, _ := strconv.ParseFloat(stringClean(strings.Fields(lines[4])[0]), 64)
 	instructions, _ := strconv.ParseFloat(stringClean(strings.Fields(lines[5])[0]), 64)
-
-	log.Print(cacheMisses, cacheRefs, instructions)
 
 	mr := cacheMisses / cacheRefs
 	return map[string]float64{"instructions": instructions, "missRatio": mr}, nil
