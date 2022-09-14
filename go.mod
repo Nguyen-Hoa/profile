@@ -1,4 +1,4 @@
-module profile
+module github.com/Nguyen-Hoa/profile
 
 go 1.17
 
