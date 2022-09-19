@@ -13,6 +13,20 @@ import (
 	proc "github.com/shirou/gopsutil/v3/process"
 )
 
+type DNN_params struct {
+	Freq         float64
+	UserTime     float64
+	VMem         float64
+	CPUPercent   float64
+	Syscalls     float64
+	Shared       uint64
+	Interrupts   uint64
+	SWInterrupts uint64
+	PIDs         uint64
+	Instructions float64
+	MissRatio    float64
+}
+
 func Get11Stats() (map[string]interface{}, error) {
 	freq, err := cpu_freq()
 	if err != nil {
