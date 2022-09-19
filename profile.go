@@ -69,17 +69,17 @@ func Get11Stats() (map[string]interface{}, error) {
 	}
 
 	stats := map[string]interface{}{
-		"freq":          freq,
-		"user_time":     user_time,
-		"vmem":          mem_stats["vmem"],
-		"percent":       percent,
-		"syscalls":      sw_interrupts,
-		"shared":        mem_stats["shared"],
-		"interrupts":    interrupts,
-		"sw_interrupts": sw_interrupts,
-		"pids":          pids,
-		"instructions":  cacheStats["instructions"],
-		"missRatio":     cacheStats["missRatio"],
+		"freq":         freq,
+		"userTime":     user_time,
+		"vmem":         mem_stats["vmem"],
+		"cpuperced":    percent,
+		"syscalls":     sw_interrupts,
+		"shared":       mem_stats["shared"],
+		"interrupts":   interrupts,
+		"swinterrupts": sw_interrupts,
+		"pids":         pids,
+		"instructions": cacheStats["instructions"],
+		"missRatio":    cacheStats["missRatio"],
 	}
 	return stats, nil
 }
