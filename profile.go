@@ -25,6 +25,7 @@ type DNN_params struct {
 	PIDs         uint64
 	Instructions float64
 	MissRatio    float64
+	Timestamp    string
 }
 
 func Get11Stats() (map[string]interface{}, error) {
