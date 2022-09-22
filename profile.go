@@ -80,6 +80,7 @@ func Get11Stats() (map[string]interface{}, error) {
 		"pids":         pids,
 		"instructions": cacheStats["instructions"],
 		"missRatio":    cacheStats["missRatio"],
+		"timestamp":    time.Now().Format("15:04:05"),
 	}
 	return stats, nil
 }
