@@ -14,6 +14,7 @@ import (
 )
 
 type DNN_params struct {
+	MachineID    string
 	Freq         float64
 	UserTime     float64
 	VMem         float64
