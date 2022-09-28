@@ -74,7 +74,7 @@ func Get11Stats() (map[string]interface{}, error) {
 		"freq":         freq,
 		"userTime":     user_time,
 		"vmem":         mem_stats["vmem"],
-		"cpuperced":    percent,
+		"cpupercent":   percent,
 		"syscalls":     sw_interrupts,
 		"shared":       mem_stats["shared"],
 		"interrupts":   interrupts,
