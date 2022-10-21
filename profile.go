@@ -29,6 +29,29 @@ type DNN_params struct {
 	Timestamp    string
 }
 
+func GetCPUAndMemStats() (map[string]interface{}, error) {
+	freq, err := cpu_freq()
+	if err != nil {
+		return nil, err
+	}
+	mem_stats, err := mem_stats()
+	if err != nil {
+		return nil, err
+	}
+	percent, err := cpu_percent()
+	if err != nil {
+		return nil, err
+	}
+	stats := map[string]interface{}{
+		"freq":       freq,
+		"vmem":       mem_stats["vmem"],
+		"cpupercent": percent,
+		"shared":     mem_stats["shared"],
+		"timestamp":  time.Now().Format("15:04:05"),
+	}
+	return stats, nil
+}
+
 func Get11Stats() (map[string]interface{}, error) {
 	freq, err := cpu_freq()
 	if err != nil {
