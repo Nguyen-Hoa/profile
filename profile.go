@@ -3,7 +3,6 @@ package profile
 import (
 	"bytes"
 	"errors"
-	"log"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -131,14 +130,11 @@ func cpu_percent() (float64, error) {
 }
 
 func cpu_percent_async(percent chan float64) {
-	log.Print("running cpu percent")
 	A, err := cpu.Percent(time.Duration(time.Second), false)
 	if err != nil {
-		log.Print(err)
 		percent <- 0.0
 		return
 	}
-	log.Print("done cpu percent", A[0])
 	percent <- A[0]
 }
 
@@ -282,10 +278,8 @@ func cache_stats_async(cacheStats chan map[string]float64) {
 	var outb, errb bytes.Buffer
 	perf.Stdout = &outb
 	perf.Stderr = &errb
-	log.Print("Running cache stats")
 	err := perf.Run()
 	if err != nil {
-		log.Print(errb.String())
 		cacheStats <- nil
 		return
 	}
@@ -296,7 +290,6 @@ func cache_stats_async(cacheStats chan map[string]float64) {
 	mr := cacheMisses / cacheRefs
 	stats := map[string]float64{"instructions": instructions, "missRatio": mr}
 
-	log.Print("done cache stats.", stats)
 	cacheStats <- stats
 }
 
