@@ -3,6 +3,7 @@ package profile
 import (
 	"bytes"
 	"errors"
+	"log"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -53,6 +54,13 @@ func GetCPUAndMemStats() (map[string]interface{}, error) {
 }
 
 func Get11Stats() (map[string]interface{}, error) {
+
+	percentQuery := make(chan float64)
+	go cpu_percent_async(percentQuery)
+
+	cacheStatsQuery := make(chan map[string]float64)
+	go cache_stats_async(cacheStatsQuery)
+
 	freq, err := cpu_freq()
 	if err != nil {
 		return nil, err
@@ -64,11 +72,6 @@ func Get11Stats() (map[string]interface{}, error) {
 	}
 
 	mem_stats, err := mem_stats()
-	if err != nil {
-		return nil, err
-	}
-
-	percent, err := cpu_percent()
 	if err != nil {
 		return nil, err
 	}
@@ -88,9 +91,16 @@ func Get11Stats() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	cacheStats, err := cacheStats()
-	if err != nil {
-		return nil, err
+	percent := <-percentQuery
+	close(percentQuery)
+	if percent == 0.0 {
+		return nil, errors.New("no cpu percent")
+	}
+
+	cacheStats := <-cacheStatsQuery
+	close(cacheStatsQuery)
+	if cacheStats == nil {
+		return nil, errors.New("no cache stats")
 	}
 
 	stats := map[string]interface{}{
@@ -118,6 +128,18 @@ func cpu_percent() (float64, error) {
 	}
 
 	return A[0], nil
+}
+
+func cpu_percent_async(percent chan float64) {
+	log.Print("running cpu percent")
+	A, err := cpu.Percent(time.Duration(time.Second), false)
+	if err != nil {
+		log.Print(err)
+		percent <- 0.0
+		return
+	}
+	log.Print("done cpu percent", A[0])
+	percent <- A[0]
 }
 
 // Python equivalent: ps.cpu_freq()
@@ -237,7 +259,7 @@ func pids() (int, error) {
 }
 
 // Python equivalent: N/A
-func cacheStats() (map[string]float64, error) {
+func cache_stats() (map[string]float64, error) {
 	perf := exec.Command("perf", "stat", "--time", "1000", "-e", "cache-misses,cache-references,instructions")
 	var outb, errb bytes.Buffer
 	perf.Stdout = &outb
@@ -253,6 +275,29 @@ func cacheStats() (map[string]float64, error) {
 
 	mr := cacheMisses / cacheRefs
 	return map[string]float64{"instructions": instructions, "missRatio": mr}, nil
+}
+
+func cache_stats_async(cacheStats chan map[string]float64) {
+	perf := exec.Command("perf", "stat", "--time", "1000", "-e", "cache-misses,cache-references,instructions")
+	var outb, errb bytes.Buffer
+	perf.Stdout = &outb
+	perf.Stderr = &errb
+	log.Print("Running cache stats")
+	err := perf.Run()
+	if err != nil {
+		log.Print(errb.String())
+		cacheStats <- nil
+		return
+	}
+	lines := strings.Split(errb.String(), "\n")
+	cacheMisses, _ := strconv.ParseFloat(stringClean(strings.Fields(lines[3])[0]), 64)
+	cacheRefs, _ := strconv.ParseFloat(stringClean(strings.Fields(lines[4])[0]), 64)
+	instructions, _ := strconv.ParseFloat(stringClean(strings.Fields(lines[5])[0]), 64)
+	mr := cacheMisses / cacheRefs
+	stats := map[string]float64{"instructions": instructions, "missRatio": mr}
+
+	log.Print("done cache stats.", stats)
+	cacheStats <- stats
 }
 
 func stringClean(s string) string {
